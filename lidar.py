@@ -119,7 +119,7 @@ class VelodyneVLP16(Lidar):
         gprmc = gprmc.split()[0]  # filter out gprmc message, remaining are zeros
         gprmc = gprmc.decode('ascii').split(',')  # convert bytes array to string
 
-        print(gprmc)
+        #print(gprmc)
 
         gps_msg = GprmcMessage()
         time = gprmc[1]
