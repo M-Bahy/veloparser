@@ -16,16 +16,17 @@ or other huge c++-based lib that does 'just' extract the point clouds and GPS-Ti
 
 ##### Usage
 
-Assuming using Anacoda python distribution:
+Assuming using Anaconda python distribution:
 ```bash
 ~$ cd \path-to-veloparser-repo\
 ~/veloparser$ conda env create -f environment.yml
 ~/veloparser$ conda activate veloparser
 ~/veloparser$ python main.py -p /home/user/my.pcap -o /home/user/output_folder -c params.yaml
 ```
-
+Note, the `params.yaml` can be updated according to your setup.  For example, specifying whether GPS was available.
+	
 ##### Dependencies
-Veloparser has follwoing package dependencies:
+Veloparser has following package dependencies:
 - dpkt
 - numpy
 - tqdm
@@ -42,7 +43,7 @@ Time [musec], X [m], Y [m], Z [m], ID, Intensity, Latitude [Deg], Longitudes [De
 2795827806, 0.083565, 14.399564, 0.251350, 1, 6, 0.333, 1.000, 14.402
 ``
 
-All __Point Cloud__ PCD-Files have follwoing fields:
+All __Point Cloud__ PCD-Files have following fields:
 1) X-Coordinate
 2) Y-Coordinate
 3) Z-Coordinate
