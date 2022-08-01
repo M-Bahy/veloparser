@@ -15,14 +15,21 @@ The reason why i wrote it, is simply that i could not find any simple way withou
 or other huge c++-based lib that does 'just' extract the point clouds and GPS-Timestamps from pcap-file.
 
 ##### Usage
-python veloparser -p /home/user/my.pcap -o /home/user/output_folder -c params.yaml
 
+Assuming using Anacoda python distribution:
+```bash
+~$ cd \path-to-veloparser-repo\
+~/veloparser$ conda env create -f environment.yml
+~/veloparser$ conda activate veloparser
+~/veloparser$ python main.py -p /home/user/my.pcap -o /home/user/output_folder -c params.yaml
+```
 
 ##### Dependencies
 Veloparser has follwoing package dependencies:
 - dpkt
 - numpy
 - tqdm
+- yaml
 
 Please make sure that all of those packages are installed (pip or conda).
 
