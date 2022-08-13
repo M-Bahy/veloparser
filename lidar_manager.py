@@ -158,7 +158,7 @@ class VelodyneManager():
             if self.params['text']:
                 fpath = "{}/{}_frame_{}.{:06d}.txt".format(self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec)
                 write_pcl_txt(fpath, self.timestamps, self.pos_X, self.pos_Y, self.pos_Z, self.indicies,
-                              self.intensities, self.latitudes, self.longitudes, self.distances)
+                              self.intensities, distances=self.distances, latitudes=None, longitudes=None)
 
             if self.params['ply']:
                 fpath = "{}/{}_frame_{}.{:06d}.pcd".format(self.pcl_path, self.frame_nr, gpsseconds, gpsmicrosec)
@@ -289,27 +289,30 @@ class VelodyneManager():
 
 
 def write_pcl_txt(path, timestamps, X, Y, Z,  laser_id, intensities=None, latitudes=None, longitudes=None, distances=None):
-    header = "time,X,Y,Z,id,intensity,latitude,longitudes,distance\n"
-    try:
-        fp = open(path, 'w')
-        fp.write(header)
-    except Exception as ex:
-        print(str(ex))
-        return
-
+    header = "time,X,Y,Z,id"
+    fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%d']
     M = np.vstack((timestamps, X, Y, Z, laser_id))
 
     if intensities is not None:
+        header += ',intensity'
+        fmt_list.append('%d')
         M = np.vstack((M, intensities))
     if latitudes is not None:
+        header += ',latitude'
+        fmt_list.append('%.3f')
         M = np.vstack((M, latitudes))
     if longitudes is not None:
+        header += ',longitudes'
+        fmt_list.append('%.3f')
         M = np.vstack((M, longitudes))
     if distances is not None:
+        header += ',distance'
+        fmt_list.append('%.3f')
         M = np.vstack((M, distances))
+        # Drop cols where distance == 0 (i.e. not valid measurement)
+        M = M[:, M[-1, :] != 0]
 
-    np.savetxt(fp, M.T, fmt=('%d', '%.6f', '%.6f', '%.6f', '%d', '%d', '%.3f', '%.3f', '%.3f'), delimiter=',')
-    fp.close()
+    np.savetxt(path, M.T, fmt=fmt_list, delimiter=',', header=header)
 
 
 def write_pcd(path, X, Y, Z,  intensities=None):
