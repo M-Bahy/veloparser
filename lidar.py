@@ -36,6 +36,8 @@ class VelodyneVLP16(Lidar):
         self.timing_offsets = self.calc_timing_offsets()
 
         self.omega = np.array([-15, 1, -13, 3, -11, 5, -9, 7, -7, 9, -5, 11, -3, 13, -1, 15])
+        # Vertical correction (mm) - VLP-16 User Manual Table 9-1 (numbers are specific to VLP16)
+        self.vcorr_mm = np.array([11.2, -0.7, 9.7, -2.2, 8.1, -3.7, 6.6, -5.1, 5.1, -6.6, 3.7, -8.1, 2.2, -9.7, 0.7, -11.2])
         self.count_lasers = 16
 
     def calc_timing_offsets(self):
@@ -86,7 +88,7 @@ class VelodyneVLP16(Lidar):
         azimuth_per_block = np.array(azimuth_per_block)
 
         ## Note: all these arrray have th same size, number of firing in one packet
-        azimuth = self.calc_precise_azimuth(azimuth_per_block).reshape(12, 32)
+        azimuth = self.calc_precise_azimuth_2(azimuth_per_block).reshape(12, 32)
         distances = np.array(distances)
         intensities = np.array(intensities)
 
@@ -119,7 +121,7 @@ class VelodyneVLP16(Lidar):
         gprmc = gprmc.split()[0]  # filter out gprmc message, remaining are zeros
         gprmc = gprmc.decode('ascii').split(',')  # convert bytes array to string
 
-        print(gprmc)
+        #print(gprmc)
 
         gps_msg = GprmcMessage()
         time = gprmc[1]
@@ -181,28 +183,28 @@ class VelodyneVLP16(Lidar):
         # iterate through each block
         for n in range(12): # n=0..11
             azimuth = org_azi.copy()
-            try:
+            # Determine the azimuth Gap between data blocks
+            if n < 11:
                 # First, adjust for an Azimuth rollover from 359.99° to 0°
                 if azimuth[n + 1] < azimuth[n]:
                     azimuth[n + 1] += 360.
-
-                # Determine the azimuth Gap between data blocks
                 azimuth_gap = azimuth[n + 1] - azimuth[n]
-            except:
-                azimuth_gap = azimuth[n] - azimuth[n-1]
-
+            else:
+                # Last block.  Simply use last iteration `azimuth_gap`.
+                pass
+            
             # iterate through each firing
             for k in range(32):
                 # Determine if you’re in the first or second firing sequence of the data block
                 if k < 16:
                     # Interpolate
-                    precise_azimuth = azimuth[n] + (azimuth_gap * 2.304 * k) / 55.296
+                    precise_azimuth = azimuth[n] + (azimuth_gap * 2.304 * k) / (2 * 55.296)
                 else:
-                    # interpolate
-                    precise_azimuth = azimuth[n] + (azimuth_gap * 2.304 * ((k-16) + 55.296)) / 55.296
-                if precise_azimuth > 361.:
-                    print("Error")
-                print(precise_azimuth)
+                    # Interpolate, but 55.296 us has passed.
+                    precise_azimuth = azimuth[n] + (azimuth_gap * (55.296 + 2.304*(k - 16))) / (2 * 55.296)
+                if precise_azimuth >= 360.:
+                    precise_azimuth -= 360.
+                #print(precise_azimuth)
                 precision_azimuth.append(precise_azimuth)
         precision_azimuth = np.array(precision_azimuth)
         return precision_azimuth
@@ -232,4 +234,9 @@ class VelodyneVLP16(Lidar):
         X = hypotenuses * np.sin(latitudes)
         Y = hypotenuses * np.cos(latitudes)
         Z = distances * np.sin(longitudes)
+
+        # Apply vertical correction for laser positions
+        Z += 1e-3 * np.tile(self.vcorr_mm, 2)
+        
+
         return X, Y, Z

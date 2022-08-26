@@ -12,7 +12,7 @@ def read_params(path):
     except Exception as ex:
         print(str(ex))
 
-    params = yaml.load(f.read())
+    params = yaml.safe_load(f.read())
     return params
 
 

@@ -2,7 +2,7 @@ gps-port: 8308
 data-port: 2368
 type: velodyneVLP16
 
-gps: False
+gps: True 
 text: True
 ply: True
 
