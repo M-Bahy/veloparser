@@ -9,7 +9,7 @@ from gps import GprmcMessage, utc_to_weekseconds
 import lidar
 
 
-class VelodyneManager():
+class VelodyneManager:
 
     def __init__(self, type, pcap_path, out_root, params):
         self.pcap_path = Path(pcap_path)
@@ -41,7 +41,7 @@ class VelodyneManager():
     def get_pcap_length(self):
         # open pcap file
         try:
-            fpcap = open(self.pcap_path, 'rb')
+            fpcap = open(self.pcap_path, "rb")
             lidar_reader = dpkt.pcap.Reader(fpcap)
         except Exception as ex:
             print(str(ex))
@@ -66,7 +66,7 @@ class VelodyneManager():
 
         # open pcap file
         try:
-            fpcap = open(self.pcap_path, 'rb')
+            fpcap = open(self.pcap_path, "rb")
             self.lidar_reader = dpkt.pcap.Reader(fpcap)
         except Exception as ex:
             print(str(ex))
@@ -80,9 +80,9 @@ class VelodyneManager():
         pbar = tqdm(total=pcap_len)
         for idx, (ts, buf) in enumerate(self.lidar_reader):
 
-            if idx < self.params['from']:
+            if idx < self.params["from"]:
                 continue
-            if 0 < self.params['to'] < idx:
+            if 0 < self.params["to"] < idx:
                 break
 
             self.datetime = datetime.datetime.utcfromtimestamp(ts)
@@ -91,12 +91,12 @@ class VelodyneManager():
             data = eth.data.data.data
 
             # handle Position-Frame (GPS-Data)
-            if self.params['gps']:
-                if eth.data.data.sport == self.params['gps-port']:
+            if self.params["gps"]:
+                if eth.data.data.sport == self.params["gps-port"]:
                     self.process_gps_frame(data, ts, idx)
 
             # Handle Data-Frame (Point clouds)
-            if eth.data.data.sport == self.params['data-port']:
+            if eth.data.data.sport == self.params["data-port"]:
                 self.process_data_frame(data, ts, idx)
 
             pbar.update(1)
@@ -106,7 +106,15 @@ class VelodyneManager():
 
     def process_data_frame(self, data, timestamp, index):
 
-        cur_X, cur_Y, cur_Z, cur_intensities, cur_latitudes, cur_timestamps, cur_distances = self.lidar.process_data_frame(data, index)
+        (
+            cur_X,
+            cur_Y,
+            cur_Z,
+            cur_intensities,
+            cur_latitudes,
+            cur_timestamps,
+            cur_distances,
+        ) = self.lidar.process_data_frame(data, index)
 
         # number of sequences
         n_seq = int(len(cur_X) / self.lidar.count_lasers)
@@ -126,7 +134,6 @@ class VelodyneManager():
             self.indicies = cur_indicies
             self.longitudes = cur_longitudes
 
-
         if self.cur_azimuth is None:
             self.cur_azimuth = cur_latitudes
             self.last_azimuth = cur_latitudes
@@ -141,40 +148,70 @@ class VelodyneManager():
         if idx_rollovr is not None:
 
             if idx_rollovr > 0:
-                self.pos_X = np.hstack((self.pos_X, cur_X[0:idx_rollovr+1]))
-                self.pos_Y = np.hstack((self.pos_Y, cur_Y[0:idx_rollovr+1]))
-                self.pos_Z = np.hstack((self.pos_Z, cur_Z[0:idx_rollovr+1]))
-                self.intensities = np.hstack((self.intensities, cur_intensities[0:idx_rollovr+1]))
-                self.latitudes = np.hstack((self.latitudes, cur_latitudes[0:idx_rollovr+1]))
-                self.timestamps = np.hstack((self.timestamps, cur_timestamps[0:idx_rollovr+1]))
-                self.distances = np.hstack((self.distances, cur_distances[0:idx_rollovr+1]))
-                self.indicies = np.hstack((self.indicies, cur_indicies[0:idx_rollovr+1]))
-                self.longitudes = np.hstack((self.longitudes, cur_longitudes[0:idx_rollovr+1]))
+                self.pos_X = np.hstack((self.pos_X, cur_X[0 : idx_rollovr + 1]))
+                self.pos_Y = np.hstack((self.pos_Y, cur_Y[0 : idx_rollovr + 1]))
+                self.pos_Z = np.hstack((self.pos_Z, cur_Z[0 : idx_rollovr + 1]))
+                self.intensities = np.hstack(
+                    (self.intensities, cur_intensities[0 : idx_rollovr + 1])
+                )
+                self.latitudes = np.hstack(
+                    (self.latitudes, cur_latitudes[0 : idx_rollovr + 1])
+                )
+                self.timestamps = np.hstack(
+                    (self.timestamps, cur_timestamps[0 : idx_rollovr + 1])
+                )
+                self.distances = np.hstack(
+                    (self.distances, cur_distances[0 : idx_rollovr + 1])
+                )
+                self.indicies = np.hstack(
+                    (self.indicies, cur_indicies[0 : idx_rollovr + 1])
+                )
+                self.longitudes = np.hstack(
+                    (self.longitudes, cur_longitudes[0 : idx_rollovr + 1])
+                )
 
             min, sec, micro = self.time_from_lidar(self.timestamps[0])
-            self.datetime = self.datetime.replace(minute=min, second=sec, microsecond=int(micro))
-            gpsweek, gpsdays, gpsseconds, gpsmicrosec = utc_to_weekseconds(self.datetime, 0)
+            self.datetime = self.datetime.replace(
+                minute=min, second=sec, microsecond=int(micro)
+            )
+            gpsweek, gpsdays, gpsseconds, gpsmicrosec = utc_to_weekseconds(
+                self.datetime, 0
+            )
 
-            if self.params['text']:
-                fpath = "{}/{}_frame_{}.{:06d}.txt".format(self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec)
-                write_pcl_txt(fpath, self.timestamps, self.pos_X, self.pos_Y, self.pos_Z, self.indicies,
-                              self.intensities, distances=self.distances, latitudes=None, longitudes=None)
+            if self.params["text"]:
+                fpath = "{}/{}_frame_{}.{:06d}.txt".format(
+                    self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec
+                )
+                write_pcl_txt(
+                    fpath,
+                    self.timestamps,
+                    self.pos_X,
+                    self.pos_Y,
+                    self.pos_Z,
+                    self.indicies,
+                    self.intensities,
+                    distances=self.distances,
+                    latitudes=None,
+                    longitudes=None,
+                )
 
-            if self.params['ply']:
-                fpath = "{}/{}_frame_{}.{:06d}.pcd".format(self.pcl_path, self.frame_nr, gpsseconds, gpsmicrosec)
+            if self.params["ply"]:
+                fpath = "{}/{}_frame_{}.{:06d}.pcd".format(
+                    self.pcl_path, self.frame_nr, gpsseconds, gpsmicrosec
+                )
                 write_pcd(fpath, self.pos_X, self.pos_Y, self.pos_Z, self.intensities)
 
             # reset states
             if idx_rollovr > 0:
-                self.pos_X = cur_X[idx_rollovr+1:]
-                self.pos_Y = cur_Y[idx_rollovr+1:]
-                self.pos_Z = cur_Z[idx_rollovr+1:]
-                self.intensities = cur_intensities[idx_rollovr+1:]
-                self.latitudes = cur_latitudes[idx_rollovr+1:]
-                self.timestamps = cur_timestamps[idx_rollovr+1:]
-                self.distances = cur_distances[idx_rollovr+1:]
-                self.indicies = cur_indicies[idx_rollovr+1:]
-                self.longitudes = cur_longitudes[idx_rollovr+1:]
+                self.pos_X = cur_X[idx_rollovr + 1 :]
+                self.pos_Y = cur_Y[idx_rollovr + 1 :]
+                self.pos_Z = cur_Z[idx_rollovr + 1 :]
+                self.intensities = cur_intensities[idx_rollovr + 1 :]
+                self.latitudes = cur_latitudes[idx_rollovr + 1 :]
+                self.timestamps = cur_timestamps[idx_rollovr + 1 :]
+                self.distances = cur_distances[idx_rollovr + 1 :]
+                self.indicies = cur_indicies[idx_rollovr + 1 :]
+                self.longitudes = cur_longitudes[idx_rollovr + 1 :]
             else:
                 self.pos_X = cur_X
                 self.pos_Y = cur_Y
@@ -211,16 +248,24 @@ class VelodyneManager():
         if self.gps_fp is None:
             try:
                 gps_path = Path("{}/{}.txt".format(self.out_path, "data_gps"))
-                self.gps_fp = open(gps_path, 'w')
+                self.gps_fp = open(gps_path, "w")
                 # write point cloud as a text-file
                 header = "UTC-Time, Week, Seconds [sow], Status, Latitude [Deg], Longitudes [Deg], Velocity [m/s]\n"
                 self.gps_fp.write(header)
             except Exception as ex:
                 print(ex)
 
-        txt = "{}, {}, {}, {}, {} {}, {} {}, {}\n".format(gps_msg.datetime, gps_msg.weeks, gps_msg.seconds,
-                                                          gps_msg.status, gps_msg.lat, gps_msg.lat_ori,
-                                                          gps_msg.long, gps_msg.lat_ori, gps_msg.velocity)
+        txt = "{}, {}, {}, {}, {} {}, {} {}, {}\n".format(
+            gps_msg.datetime,
+            gps_msg.weeks,
+            gps_msg.seconds,
+            gps_msg.status,
+            gps_msg.lat,
+            gps_msg.lat_ori,
+            gps_msg.long,
+            gps_msg.lat_ori,
+            gps_msg.velocity,
+        )
         self.gps_fp.write(txt)
 
     def is_roll_over(self):
@@ -231,8 +276,8 @@ class VelodyneManager():
         diff_cur = self.cur_azimuth[0:-1] - self.cur_azimuth[1:]
         diff_cur_last = self.cur_azimuth - self.last_azimuth
 
-        res_cur = np.where(diff_cur > 0.)[0]
-        res_cur_last =  np.where(diff_cur_last < 0.)[0]
+        res_cur = np.where(diff_cur > 0.0)[0]
+        res_cur_last = np.where(diff_cur_last < 0.0)[0]
         if res_cur.size > 0:
             index = res_cur[0]
             return index
@@ -250,10 +295,10 @@ class VelodyneManager():
         :return:
         """
         try:
-            micro = timestamp % (1000*1000)
-            min_float = (timestamp / (1000*1000*60)) % 60
+            micro = timestamp % (1000 * 1000)
+            min_float = (timestamp / (1000 * 1000 * 60)) % 60
             min = int(min_float)
-            sec = int((timestamp / (1000*1000)) % 60)
+            sec = int((timestamp / (1000 * 1000)) % 60)
             min = int(min)
         except Exception as ex:
             print(ex)
@@ -278,7 +323,7 @@ class VelodyneManager():
             return False
 
         # if text-files are desired, create text-file dir
-        if self.params['text']:
+        if self.params["text"]:
             self.txt_path = Path("{}/{}".format(self.out_path, "data_ascii"))
             try:
                 os.makedirs(self.txt_path.absolute())
@@ -288,34 +333,45 @@ class VelodyneManager():
         return True
 
 
-def write_pcl_txt(path, timestamps, X, Y, Z,  laser_id, intensities=None, latitudes=None, longitudes=None, distances=None):
+def write_pcl_txt(
+    path,
+    timestamps,
+    X,
+    Y,
+    Z,
+    laser_id,
+    intensities=None,
+    latitudes=None,
+    longitudes=None,
+    distances=None,
+):
     header = "time,X,Y,Z,id"
-    fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%d']
+    fmt_list = ["%d", "%.6f", "%.6f", "%.6f", "%d"]
     M = np.vstack((timestamps, X, Y, Z, laser_id))
 
     if intensities is not None:
-        header += ',intensity'
-        fmt_list.append('%d')
+        header += ",intensity"
+        fmt_list.append("%d")
         M = np.vstack((M, intensities))
     if latitudes is not None:
-        header += ',latitude'
-        fmt_list.append('%.3f')
+        header += ",latitude"
+        fmt_list.append("%.3f")
         M = np.vstack((M, latitudes))
     if longitudes is not None:
-        header += ',longitudes'
-        fmt_list.append('%.3f')
+        header += ",longitudes"
+        fmt_list.append("%.3f")
         M = np.vstack((M, longitudes))
     if distances is not None:
-        header += ',distance'
-        fmt_list.append('%.3f')
+        header += ",distance"
+        fmt_list.append("%.3f")
         M = np.vstack((M, distances))
         # Drop cols where distance == 0 (i.e. not valid measurement)
         M = M[:, M[-1, :] != 0]
 
-    np.savetxt(path, M.T, fmt=fmt_list, delimiter=',', header=header)
+    np.savetxt(path, M.T, fmt=fmt_list, delimiter=",", header=header)
 
 
-def write_pcd(path, X, Y, Z,  intensities=None):
+def write_pcd(path, X, Y, Z, intensities=None):
     template = """VERSION {}\nFIELDS {}\nSIZE {}\nTYPE {}\nCOUNT {}\nWIDTH {}\nHEIGHT {}\nVIEWPOINT {}\nPOINTS {}\nDATA {}\n"""
 
     X = X.astype(np.float32).reshape(1, -1)
@@ -325,16 +381,47 @@ def write_pcd(path, X, Y, Z,  intensities=None):
     if intensities is not None:
         I = intensities.astype(np.float32).reshape(1, -1)
         M = np.hstack((X.T, Y.T, Z.T, I.T))
-        pc_data = M.view(np.dtype([('x', np.float32), ('y', np.float32), ('z', np.float32), ('i', np.float32)]))
-        tmpl = template.format("0.7", "x y z intensity", "4 4 4 4", "F F F F", "1 1 1 1", pc_data.size, "1",
-                               "0 0 0 1 0 0 0", pc_data.size, "binary")
+        pc_data = M.view(
+            np.dtype(
+                [
+                    ("x", np.float32),
+                    ("y", np.float32),
+                    ("z", np.float32),
+                    ("i", np.float32),
+                ]
+            )
+        )
+        tmpl = template.format(
+            "0.7",
+            "x y z intensity",
+            "4 4 4 4",
+            "F F F F",
+            "1 1 1 1",
+            pc_data.size,
+            "1",
+            "0 0 0 1 0 0 0",
+            pc_data.size,
+            "binary",
+        )
     else:
         M = np.hstack((X.T, Y.T, Z.T))
-        pc_data = M.view(np.dtype([('x', np.float32), ('y', np.float32), ('z', np.float32)]))
-        tmpl = template.format("0.7", "x y z", "4 4 4", "F F F", "1 1 1", pc_data.size, "1", "0 0 0 1 0 0 0",
-                               pc_data.size, "binary")
+        pc_data = M.view(
+            np.dtype([("x", np.float32), ("y", np.float32), ("z", np.float32)])
+        )
+        tmpl = template.format(
+            "0.7",
+            "x y z",
+            "4 4 4",
+            "F F F",
+            "1 1 1",
+            pc_data.size,
+            "1",
+            "0 0 0 1 0 0 0",
+            pc_data.size,
+            "binary",
+        )
 
-    fp = open(path, 'wb')
+    fp = open(path, "wb")
     fp.write(tmpl.encode())
     fp.write(pc_data.tostring())
     fp.close()

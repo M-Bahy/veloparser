@@ -9,10 +9,15 @@ from gps import GprmcMessage, utc_to_weekseconds
 
 
 def read_uint32(data, idx):
-  return data[idx] + data[idx+1]*256 + data[idx+2]*256*256 + data[idx+3]*256*256*256
+    return (
+        data[idx]
+        + data[idx + 1] * 256
+        + data[idx + 2] * 256 * 256
+        + data[idx + 3] * 256 * 256 * 256
+    )
 
 
-class Lidar():
+class Lidar:
     def __init__(self):
         self.point_cloud = []
 
@@ -35,9 +40,30 @@ class VelodyneVLP16(Lidar):
         self.dual_mode = dual_mode
         self.timing_offsets = self.calc_timing_offsets()
 
-        self.omega = np.array([-15, 1, -13, 3, -11, 5, -9, 7, -7, 9, -5, 11, -3, 13, -1, 15])
+        self.omega = np.array(
+            [-15, 1, -13, 3, -11, 5, -9, 7, -7, 9, -5, 11, -3, 13, -1, 15]
+        )
         # Vertical correction (mm) - VLP-16 User Manual Table 9-1 (numbers are specific to VLP16)
-        self.vcorr_mm = np.array([11.2, -0.7, 9.7, -2.2, 8.1, -3.7, 6.6, -5.1, 5.1, -6.6, 3.7, -8.1, 2.2, -9.7, 0.7, -11.2])
+        self.vcorr_mm = np.array(
+            [
+                11.2,
+                -0.7,
+                9.7,
+                -2.2,
+                8.1,
+                -3.7,
+                6.6,
+                -5.1,
+                5.1,
+                -6.6,
+                3.7,
+                -8.1,
+                2.2,
+                -9.7,
+                0.7,
+                -11.2,
+            ]
+        )
         self.count_lasers = 16
 
     def calc_timing_offsets(self):
@@ -54,8 +80,9 @@ class VelodyneVLP16(Lidar):
                 else:
                     dataBlockIndex = (x * 2) + int((y / 16))
                 dataPointIndex = y % 16
-                timing_offsets[y][x] = \
-                    (full_firing_cycle * dataBlockIndex) + (single_firing * dataPointIndex)
+                timing_offsets[y][x] = (full_firing_cycle * dataBlockIndex) + (
+                    single_firing * dataPointIndex
+                )
         return np.array(timing_offsets).T
 
     def process_data_frame(self, data, frame_idx):
@@ -83,7 +110,6 @@ class VelodyneVLP16(Lidar):
             distances.append(dists)
             intensities.append(intens)
             azimuth_per_block.append(angles)
-
 
         azimuth_per_block = np.array(azimuth_per_block)
 
@@ -119,14 +145,14 @@ class VelodyneVLP16(Lidar):
 
         gprmc = data[206:]
         gprmc = gprmc.split()[0]  # filter out gprmc message, remaining are zeros
-        gprmc = gprmc.decode('ascii').split(',')  # convert bytes array to string
+        gprmc = gprmc.decode("ascii").split(",")  # convert bytes array to string
 
-        #print(gprmc)
+        # print(gprmc)
 
         gps_msg = GprmcMessage()
         time = gprmc[1]
         date = gprmc[9]
-        gps_msg.datetime = datetime.datetime.strptime(date + time, '%d%m%y%H%M%S')
+        gps_msg.datetime = datetime.datetime.strptime(date + time, "%d%m%y%H%M%S")
 
         gps_msg.status = gprmc[2]
         gps_msg.lat = float(gprmc[3])
@@ -139,10 +165,11 @@ class VelodyneVLP16(Lidar):
         gps_msg.mag = float(gprmc[10])
         gps_msg.mag_sign = gprmc[11]
         gps_msg.singularity = gprmc[12]
-        gps_msg.weeks, _, gps_msg.seconds, _ = utc_to_weekseconds(gps_msg.datetime, leapseconds=0)
+        gps_msg.weeks, _, gps_msg.seconds, _ = utc_to_weekseconds(
+            gps_msg.datetime, leapseconds=0
+        )
 
         return gps_msg
-
 
     def calc_precise_azimuth(self, azimuth):
         """
@@ -154,21 +181,21 @@ class VelodyneVLP16(Lidar):
 
         precision_azimuth = []
         # iterate through each block
-        for n in range(12): # n=0..11
+        for n in range(12):  # n=0..11
             azimuth = org_azi.copy()
             try:
                 # First, adjust for an Azimuth rollover from 359.99° to 0°
                 if azimuth[n + 1] < azimuth[n]:
-                    azimuth[n + 1] += 360.
+                    azimuth[n + 1] += 360.0
 
                 # Determine the azimuth Gap between data blocks
                 azimuth_gap = azimuth[n + 1] - azimuth[n]
             except:
-                if azimuth[n] < azimuth[n-1]:
+                if azimuth[n] < azimuth[n - 1]:
                     azimuth[n] += 360
-                azimuth_gap = azimuth[n] - azimuth[n-1]
+                azimuth_gap = azimuth[n] - azimuth[n - 1]
 
-            factor = azimuth_gap / 32.
+            factor = azimuth_gap / 32.0
             k = np.arange(32)
             precise_azimuth = azimuth[n] + factor * k
             precision_azimuth.append(precise_azimuth)
@@ -181,38 +208,42 @@ class VelodyneVLP16(Lidar):
 
         precision_azimuth = []
         # iterate through each block
-        for n in range(12): # n=0..11
+        for n in range(12):  # n=0..11
             azimuth = org_azi.copy()
             # Determine the azimuth Gap between data blocks
             if n < 11:
                 # First, adjust for an Azimuth rollover from 359.99° to 0°
                 if azimuth[n + 1] < azimuth[n]:
-                    azimuth[n + 1] += 360.
+                    azimuth[n + 1] += 360.0
                 azimuth_gap = azimuth[n + 1] - azimuth[n]
             else:
                 # Last block.  Simply use last iteration `azimuth_gap`.
                 pass
-            
+
             # iterate through each firing
             for k in range(32):
                 # Determine if you’re in the first or second firing sequence of the data block
                 if k < 16:
                     # Interpolate
-                    precise_azimuth = azimuth[n] + (azimuth_gap * 2.304 * k) / (2 * 55.296)
+                    precise_azimuth = azimuth[n] + (azimuth_gap * 2.304 * k) / (
+                        2 * 55.296
+                    )
                 else:
                     # Interpolate, but 55.296 us has passed.
-                    precise_azimuth = azimuth[n] + (azimuth_gap * (55.296 + 2.304*(k - 16))) / (2 * 55.296)
-                if precise_azimuth >= 360.:
-                    precise_azimuth -= 360.
-                #print(precise_azimuth)
+                    precise_azimuth = azimuth[n] + (
+                        azimuth_gap * (55.296 + 2.304 * (k - 16))
+                    ) / (2 * 55.296)
+                if precise_azimuth >= 360.0:
+                    precise_azimuth -= 360.0
+                # print(precise_azimuth)
                 precision_azimuth.append(precise_azimuth)
         precision_azimuth = np.array(precision_azimuth)
         return precision_azimuth
 
     def read_firing_data(self, data):
-        block_id = data[0] + data[1]*256
+        block_id = data[0] + data[1] * 256
         # 0xeeff is upper block
-        assert block_id == 0xeeff
+        assert block_id == 0xEEFF
 
         azimuth = (data[2] + data[3] * 256) / 100
 
@@ -226,8 +257,8 @@ class VelodyneVLP16(Lidar):
         distances = distances * self.FACTOR_MM2CM * self.FACTOR_CM2M
 
         # convert deg to rad
-        longitudes = np.tile(self.omega * np.pi / 180., 2)
-        latitudes = azimuth * np.pi / 180.
+        longitudes = np.tile(self.omega * np.pi / 180.0, 2)
+        latitudes = azimuth * np.pi / 180.0
 
         hypotenuses = distances * np.cos(longitudes)
 
@@ -237,6 +268,5 @@ class VelodyneVLP16(Lidar):
 
         # Apply vertical correction for laser positions
         Z += 1e-3 * np.tile(self.vcorr_mm, 2)
-        
 
         return X, Y, Z
