@@ -9,18 +9,28 @@ Veloparser is a simple application which does following:
 - **Data frames** are saved as **Point Clouds (.pcd)** and/or as **plain Text-File**.
 - **Position frames** are saved only as **Text-File**
 - Converts frame's timestamps to GPS Week of Second format for synchronization with IMU/GNSS devices
-- Can be parameterized by yaml file. The default mood is no gps data available (position frames are not saved)
+- Can be parameterized by yaml file. The default mode is no gps data available (position frames are not saved)
 
 The reason why i wrote it, is simply that i could not find any simple way without installing ROS (Robot operating software)
 or other huge c++-based lib that does 'just' extract the point clouds and GPS-Timestamps from pcap-file.
 
 ##### Usage
 
-Assuming using Anaconda python distribution:
+1. Clone the repository
 
+```bash
+git clone https://github.com/M-Bahy/twitter-mass-blocker.git
 ```
-~$ cd \path-to-veloparser-repo\
+
+2. Install the required packages
+
+```bash
 pip install -r requirements.txt
+```
+
+3. Run the application
+
+```bash
 python main.py -p [FULL PATH TO THE PCAP FILE].pcap -o [FULL PATH TO THE OUTPUT FOLDER] -c params.yaml
 ```
 
