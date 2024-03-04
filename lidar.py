@@ -270,3 +270,7 @@ class VelodyneVLP16(Lidar):
         Z += 1e-3 * np.tile(self.vcorr_mm, 2)
 
         return X, Y, Z
+
+
+class VelodyneVLP32C(Lidar):
+    pass

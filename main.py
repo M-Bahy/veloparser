@@ -47,7 +47,7 @@ def main(args):
 
     configuration_parameters = read_params(configuration_file)
 
-    if "VLP" in lidar_type.lower():
+    if "vlp" in lidar_type.lower():
         lidar_manager = VelodyneManager(
             lidar_type, pcap_path, out_directory, configuration_parameters
         )

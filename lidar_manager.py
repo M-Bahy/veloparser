@@ -35,8 +35,10 @@ class VelodyneManager:
 
         self.gps_fp = None
 
-        if "velodynevlp16" == type.lower():
+        if "vlp16" == type.lower():
             self.lidar = lidar.VelodyneVLP16()
+        elif "vlp32c" == type.lower():
+            self.lidar = lidar.VelodyneVLP32C()
 
     def get_pcap_length(self):
         # open pcap file
