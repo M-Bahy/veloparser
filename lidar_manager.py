@@ -181,8 +181,11 @@ class VelodyneManager:
             )
 
             if self.params["text"]:
-                fpath = "{}/{}_frame_{}.{:06d}.txt".format(
-                    self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec
+                # fpath = "{}/{}_frame_{}.{:06d}.txt".format(
+                #     self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec
+                # )
+                fpath = "{}/{}_frame_{}.{}.{}.txt".format(
+                    self.txt_path, self.frame_nr, min, sec, micro
                 )
                 write_pcl_txt(
                     fpath,
