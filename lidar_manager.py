@@ -333,7 +333,7 @@ class VelodyneManager:
             except Exception as ex:
                 print(str(ex))
                 return False
-        return True
+        return self.params["ply"] or self.params["text"]
 
 
 def write_pcl_txt(
