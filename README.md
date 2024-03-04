@@ -26,7 +26,6 @@ python main.py -p [FULL PATH TO THE PCAP FILE].pcap -o [FULL PATH TO THE OUTPUT 
 
 Note, the `params.yaml` can be updated according to your setup. For example, specifying whether GPS was available.
 
-
 ##### Output
 
 Below a sample out of 2 Points in a **point cloud file**
@@ -35,4 +34,4 @@ Below a sample out of 2 Points in a **point cloud file**
 2795827803, 0.032293, 5.781942, -1.549291, 0, 6, 0.320, -15.000, 5.986
 2795827806, 0.083565, 14.399564, 0.251350, 1, 6, 0.333, 1.000, 14.402`
 
-They can also be opened and visualized with any point-cloud rendering software like (CloudCompare)[https://CloudCompare.org]
+They can also be opened and visualized with any point-cloud rendering software like [CloudCompare](https://www.danielgm.net/cc/)
