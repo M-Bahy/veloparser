@@ -184,12 +184,15 @@ class VelodyneManager:
                 # fpath = "{}/{}_frame_{}.{:06d}.txt".format(
                 #     self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec
                 # )
-                fpath = "{}/{}_frame_{}.{}.{}.txt".format(
-                    self.txt_path, self.frame_nr, min, sec, micro
+                human_time = f"{min}.{sec}.{micro}"
+
+                fpath = "{}/{}_frame_{}.txt".format(
+                    self.txt_path, self.frame_nr, human_time
                 )
                 write_pcl_txt(
                     fpath,
                     self.timestamps,
+                    human_time,
                     self.pos_X,
                     self.pos_Y,
                     self.pos_Z,
@@ -342,6 +345,7 @@ class VelodyneManager:
 def write_pcl_txt(
     path,
     timestamps,
+    human_time,
     X,
     Y,
     Z,
@@ -353,7 +357,7 @@ def write_pcl_txt(
 ):
     header = "time,X,Y,Z,id"
     fmt_list = ["%d", "%.6f", "%.6f", "%.6f", "%d"]
-    M = np.vstack((timestamps, X, Y, Z, laser_id))
+    M = np.vstack((human_time, X, Y, Z, laser_id))
 
     if intensities is not None:
         header += ",intensity"
