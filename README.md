@@ -31,7 +31,7 @@ pip install -r requirements.txt
 3. Run the application
 
 ```bash
-python main.py -p [FULL PATH TO THE PCAP FILE].pcap -o [FULL PATH TO THE OUTPUT FOLDER] -c params.yaml
+python main.py -p [FULL PATH TO THE PCAP FILE] -o [FULL PATH TO THE OUTPUT FOLDER] -c params.yaml
 ```
 
 Note, the `params.yaml` can be updated according to your setup. For example, specifying whether GPS was available.
