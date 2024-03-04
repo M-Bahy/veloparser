@@ -3,8 +3,8 @@ data-port: 2368
 type: velodyneVLP16
 
 gps: False
-text: True
-ply: False
+text: True # Create .txt files
+ply: False # Create .PCD files
 
 from: 0  # first packet to read
 to: -1   # last packet to read

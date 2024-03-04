@@ -316,13 +316,14 @@ class VelodyneManager:
             print(str(ex))
             return False
 
-        # create point cloud dirs
-        self.pcl_path = Path("{}/{}".format(self.out_path, "data_pcl"))
-        try:
-            os.makedirs(self.pcl_path.absolute())
-        except Exception as ex:
-            print(str(ex))
-            return False
+        if self.params["ply"]:
+            # create point cloud dirs
+            self.pcl_path = Path("{}/{}".format(self.out_path, "data_pcl"))
+            try:
+                os.makedirs(self.pcl_path.absolute())
+            except Exception as ex:
+                print(str(ex))
+                return False
 
         # if text-files are desired, create text-file dir
         if self.params["text"]:
