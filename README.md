@@ -19,7 +19,7 @@ or other huge c++-based lib that does 'just' extract the point clouds and GPS-Ti
 1. Clone the repository
 
 ```bash
-git clone https://github.com/M-Bahy/twitter-mass-blocker.git
+git clone https://github.com/M-Bahy/veloparser.git
 ```
 
 2. Install the required packages
