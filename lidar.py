@@ -39,7 +39,7 @@ class VelodyneVLP16(Lidar):
         super(VelodyneVLP16, self).__init__()
         self.dual_mode = dual_mode
         self.timing_offsets = self.calc_timing_offsets()
-
+        # page 53 and 54 in vlp16 user manual
         self.omega = np.array(
             [-15, 1, -13, 3, -11, 5, -9, 7, -7, 9, -5, 11, -3, 13, -1, 15]
         )

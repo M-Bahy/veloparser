@@ -1,5 +1,6 @@
 """
-The `main` function is the entry point of the program. It reads the command line arguments and calls the `read_params` function to read the configuration file.
+The `main` function is the entry point of the program. 
+It reads the command line arguments and calls the `read_params` function to read the configuration file.
 It then creates an instance of the `VelodyneManager` class and calls the `run` method to start processing the pcap file.
 """
 

@@ -184,7 +184,13 @@ class VelodyneManager:
                 # fpath = "{}/{}_frame_{}.{:06d}.txt".format(
                 #     self.txt_path, self.frame_nr, gpsseconds, gpsmicrosec
                 # )
-                human_time = f"{min}.{sec}.{micro}"
+                human_time = "{}:{}:{}:{:06d}_({})".format(
+                    self.datetime.hour,
+                    self.datetime.minute,
+                    self.datetime.second,
+                    self.datetime.microsecond,
+                    self.datetime.date(),
+                )
 
                 fpath = "{}/{}_frame_{}.txt".format(
                     self.txt_path, self.frame_nr, human_time
